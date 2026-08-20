@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M Vinoth — Mission Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void: #05070f;
+    --panel: #0c1122;
+    --panel-2: #10182e;
+    --line: #202a45;
+    --text: #e7ebf6;
+    --text-dim: #8c96b4;
+    --cyan: #57e0d0;
+    --amber: #ffb454;
+    --amber-dim: #a8763a;
+    --red: #ff6b6b;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--void);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+
+  /* ---------- starfield ---------- */
+  #stars{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+  }
+  #stars span{
+    position:absolute; width:2px; height:2px; background:#fff; border-radius:50%;
+    opacity:.5; animation: twinkle 4s ease-in-out infinite;
+  }
+  @keyframes twinkle{ 0%,100%{opacity:.15;} 50%{opacity:.9;} }
+
+  .content{ position:relative; z-index:1; }
+
+  h1,h2,h3,.display{ font-family:'Space Grotesk', sans-serif; }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:.04em; }
+
+  a{ color:inherit; }
+
+  /* ---------- top telemetry bar ---------- */
+  .telemetry-bar{
+    position:sticky; top:0; z-index:20;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 6vw;
+    background:rgba(5,7,15,.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    font-size:.72rem;
+  }
+  .telemetry-bar .dot{
+    display:inline-block; width:7px; height:7px; border-radius:50%;
+    background:var(--cyan); margin-right:8px; box-shadow:0 0 8px var(--cyan);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .telemetry-bar .right{ color:var(--text-dim); display:flex; gap:22px; }
+  .telemetry-bar .right span b{ color:var(--cyan); font-weight:600; }
+
+  /* ---------- hero ---------- */
+  .hero{
+    min-height:92vh;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:8vh 6vw 6vh;
+    position:relative;
+    border-bottom:1px solid var(--line);
+  }
+  .patch{
+    display:inline-flex; align-items:center; gap:10px;
+    border:1px solid var(--amber-dim); color:var(--amber);
+    padding:6px 14px; border-radius:999px; font-size:.7rem;
+    width:fit-content; margin-bottom:34px;
+  }
+  .patch .ring{
+    width:8px; height:8px; border-radius:50%; border:2px solid var(--amber);
+  }
+  .hero h1{
+    font-size:clamp(2.8rem, 8vw, 6rem);
+    font-weight:700; line-height:.98; letter-spacing:-.01em;
+    background:linear-gradient(180deg,#fff, #b9c4e0);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero .role{
+    margin-top:18px; font-size:clamp(1.05rem,2.4vw,1.5rem); color:var(--text-dim);
+    max-width:640px; font-weight:400;
+  }
+  .hero .role b{ color:var(--cyan); font-weight:600; }
+
+  .hero-grid{
+    margin-top:64px;
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line);
+  }
+  .hero-grid .stat{
+    background:var(--void); padding:22px 20px;
+  }
+  .hero-grid .stat .num{
+    font-family:'Space Grotesk',sans-serif; font-size:2rem; font-weight:700; color:var(--cyan);
+  }
+  .hero-grid .stat .lbl{
+    margin-top:6px; font-size:.68rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em;
+  }
+
+  /* ---------- section shell ---------- */
+  section{ padding:9vh 6vw; position:relative; border-bottom:1px solid var(--line); }
+  .eyebrow{
+    font-size:.72rem; color:var(--amber); text-transform:uppercase; letter-spacing:.18em;
+    margin-bottom:10px;
+  }
+  .sec-title{ font-size:clamp(1.7rem,4vw,2.6rem); font-weight:600; margin-bottom:8px; }
+  .sec-sub{ color:var(--text-dim); max-width:620px; margin-bottom:56px; font-size:.98rem; }
+
+  /* ---------- flight path / missions ---------- */
+  .flightpath{ position:relative; max-width:920px; margin:0 auto; }
+  .track{
+    position:absolute; left:15px; top:6px; bottom:6px; width:2px;
+    background:linear-gradient(180deg, var(--cyan), var(--line) 90%);
+  }
+  .mission{
+    position:relative; padding-left:56px; margin-bottom:56px;
+  }
+  .mission:last-child{ margin-bottom:0; }
+  .mission .node{
+    position:absolute; left:5px; top:4px; width:22px; height:22px; border-radius:50%;
+    background:var(--panel); border:2px solid var(--cyan);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .mission .node::after{
+    content:''; width:7px; height:7px; border-radius:50%; background:var(--cyan);
+  }
+  .mission.active .node{ border-color:var(--amber); }
+  .mission.active .node::after{ background:var(--amber); box-shadow:0 0 10px var(--amber); }
+
+  .mission-head{
+    display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 16px; margin-bottom:6px;
+  }
+  .mission-id{ color:var(--text-dim); font-size:.72rem; }
+  .mission-head h3{ font-size:1.3rem; font-weight:600; }
+  .mission-status{
+    margin-left:auto; font-size:.66rem; padding:3px 10px; border-radius:999px;
+    border:1px solid var(--line); color:var(--text-dim);
+  }
+  .mission.active .mission-status{ color:var(--amber); border-color:var(--amber-dim); }
+
+  .mission-org{ color:var(--cyan); font-size:.92rem; margin-bottom:2px; }
+  .mission-window{ color:var(--text-dim); font-size:.78rem; margin-bottom:16px; }
+
+  .mission-log{ list-style:none; }
+  .mission-log li{
+    position:relative; padding-left:18px; margin-bottom:9px; color:#c6cee4; font-size:.92rem;
+  }
+  .mission-log li::before{
+    content:'›'; position:absolute; left:0; color:var(--amber); font-family:'IBM Plex Mono',monospace;
+  }
+
+  /* ---------- systems / skills ---------- */
+  .systems-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1px;
+    background:var(--line); border:1px solid var(--line); max-width:1000px;
+  }
+  .system{ background:var(--panel); padding:26px; }
+  .system .tag{ color:var(--amber); font-size:.68rem; margin-bottom:10px; }
+  .system p{ color:#c6cee4; font-size:.95rem; }
+
+  /* ---------- training / education ---------- */
+  .training{
+    display:flex; flex-wrap:wrap; gap:40px; align-items:flex-start; max-width:900px;
+  }
+  .cert{
+    border:1px solid var(--line); background:var(--panel); padding:28px 30px; flex:1; min-width:280px;
+  }
+  .cert .tag{ color:var(--cyan); font-size:.68rem; margin-bottom:12px; }
+  .cert h3{ font-size:1.2rem; font-weight:600; margin-bottom:4px; }
+  .cert p{ color:var(--text-dim); font-size:.9rem; }
+  .comms{ display:flex; gap:14px; flex-wrap:wrap; margin-top:18px; }
+  .comms span{
+    border:1px solid var(--line); padding:6px 14px; border-radius:999px; font-size:.78rem; color:var(--text-dim);
+  }
+  .comms span b{ color:var(--text); }
+
+  /* ---------- contact / footer ---------- */
+  footer{
+    padding:9vh 6vw 6vh; text-align:center;
+  }
+  footer .sec-title{ margin:0 auto 18px; }
+  .contact-links{
+    display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:30px;
+  }
+  .contact-links a{
+    border:1px solid var(--cyan); color:var(--cyan); padding:12px 26px; border-radius:6px;
+    font-size:.85rem; text-decoration:none; transition:.2s;
+    display:inline-block;
+  }
+  .contact-links a:hover{ background:var(--cyan); color:var(--void); }
+  footer .signoff{ margin-top:60px; color:var(--text-dim); font-size:.72rem; }
+
+  @media (max-width:680px){
+    .hero-grid{ grid-template-columns:repeat(2,1fr); }
+    .telemetry-bar .right{ display:none; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+
+<div class="content">
+
+  <div class="telemetry-bar mono">
+    <div><span class="dot"></span>MISSION STATUS: ACTIVE</div>
+    <div class="right">
+      <span>CALLSIGN: <b>M. VINOTH</b></span>
+      <span>BASE: <b>CHENNAI, IN</b></span>
+      <span>T+ <b>17 YRS</b></span>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="patch mono"><span class="ring"></span>PHARMA &amp; MEDTECH SALES COMMAND</div>
+    <h1>M VINOTH</h1>
+    <p class="role">Sales leader flying tender-based growth across <b>Pharma</b>, <b>Medical Devices</b> &amp; <b>Government Business</b> — 17+ years navigating procurement systems, key accounts and launch campaigns to 100% mission success.</p>
+
+    <div class="hero-grid mono">
+      <div class="stat">
+        <div class="num">17+</div>
+        <div class="lbl">Years In Flight</div>
+      </div>
+      <div class="stat">
+        <div class="num">6</div>
+        <div class="lbl">Missions Flown</div>
+      </div>
+      <div class="stat">
+        <div class="num">₹1.75Cr</div>
+        <div class="lbl">TNMSC Territory Grown</div>
+      </div>
+      <div class="stat">
+        <div class="num">100%</div>
+        <div class="lbl">Target FY21–FY24</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="missions">
+    <div class="eyebrow mono">FLIGHT LOG</div>
+    <h2 class="sec-title">Mission History</h2>
+    <p class="sec-sub">Six deployments across pharma and medtech, each a distinct mission with its own objectives, terrain and outcomes — logged chronologically from first launch to current orbit.</p>
+
+    <div class="flightpath">
+      <div class="track"></div>
+
+      <div class="mission">
+        <div class="node"></div>
+        <div class="mission-head">
+          <span class="mission-id mono">MISSION 01</span>
+          <h3>Medical Representative</h3>
+          <span class="mission-status mono">COMPLETE</span>
+        </div>
+        <div class="mission-org">Cipla Pvt. Ltd. — Madurai, India</div>
+        <div class="mission-window mono">NOV 2007 → NOV 2008</div>
+        <ul class="mission-log">
+          <li>Relaunched Cipla's Critical Care Division across the Madurai territory.</li>
+          <li>Led promotions for key antibiotics, including Tazact and Merocrit, in major hospitals.</li>
+          <li>Built relationships with Intensivists, Oncologists, Physicians &amp; Anesthesiologists across top hospitals.</li>
+        </ul>
+      </div>
+
+      <div class="mission">
+        <div class="node"></div>
+        <div class="mission-head">
+          <span class="mission-id mono">MISSION 02</span>
+          <h3>Territory Manager</h3>
+          <span class="mission-status mono">COMPLETE</span>
+        </div>
+        <div class="mission-org">MSD Organon India Pvt. Ltd. — Madurai, India</div>
+        <div class="mission-window mono">NOV 2008 → FEB 2013</div>
+        <ul class="mission-log">
+          <li>Conducted scientific calls with doctors and pharmacists to build product awareness.</li>
+          <li>Identified new customer engagement approaches that improved retention.</li>
+          <li>Consistently hit monthly and annual sales budgets, 2010–2012.</li>
+          <li>Successfully launched NuvaRing in the region.</li>
+          <li>Awarded Top Selling Performer, 2010–2012.</li>
+        </ul>
+      </div>
+
+      <div class="mission">
+        <div class="node"></div>
+        <div class="mission-head">
+          <span class="mission-id mono">MISSION 03</span>
+          <h3>Senior Business Executive</h3>
+          <span class="mission-status mono">COMPLETE</span>
+        </div>
+        <div class="mission-org">Mylan Pharmaceuticals Pvt. Ltd. — Madurai, India</div>
+        <div class="mission-window mono">MAR 2013 → JAN 2015</div>
+        <ul class="mission-log">
+          <li>Developed structured marketing plans and segmentation strategies to lift marketing efficiency.</li>
+          <li>Selected to launch the Mylan Women's Health Division in Madurai.</li>
+          <li>Successfully launched VISNA Gel, building market awareness in menopausal care.</li>
+          <li>Built strong relationships with Gynecologists and Infertility Specialists.</li>
+        </ul>
+      </div>
+
+      <div class="mission">
+        <div class="node"></div>
+        <div class="mission-head">
+          <span class="mission-id mono">MISSION 04</span>
+          <h3>Senior Territory Manager</h3>
+          <span class="mission-status mono">COMPLETE</span>
+        </div>
+        <div class="mission-org">Allergan India Pvt. Ltd. — Madurai HQ, South Tamil Nadu</div>
+        <div class="mission-window mono">FEB 2015 → AUG 2018</div>
+        <ul class="mission-log">
+          <li>Drove consistent growth by highlighting product USPs and sales realization.</li>
+          <li>Analyzed market and competitor insight to fine-tune strategy.</li>
+          <li>Ran patient-centric KOL programs, including Dry Eye &amp; Glaucoma awareness campaigns.</li>
+          <li>Delivered 106% YTD performance (Aug 2018) — ranked #1 South Region for Lumigan 0.01 (125%).</li>
+          <li>Achieved the highest patient enrolment for Lumigan 0.01 in South India.</li>
+          <li>Selected for the Allergan Talent Conclave, 2016 &amp; 2017.</li>
+        </ul>
+      </div>
+
+      <div class="mission">
+        <div class="node"></div>
+        <div class="mission-head">
+          <span class="mission-id mono">MISSION 05</span>
+          <h3>Business Development Manager</h3>
+          <span class="mission-status mono">COMPLETE</span>
+        </div>
+        <div class="mission-org">Biocon Ltd. — Chennai, India</div>
+        <div class="mission-window mono">SEP 2018 → JAN 2020</div>
+        <ul class="mission-log">
+          <li>Managed sales and business development across major key accounts, uncovering new growth.</li>
+          <li>Strengthened relationships with doctors, purchase heads and hospital leadership.</li>
+          <li>Aligned field activity with strategy alongside the Biocon Trade Team.</li>
+          <li>Collected and analyzed hospital data for sales planning and forecasting.</li>
+          <li>Facilitated CEO/CFO meetings with BU Heads for strategic discussions.</li>
+          <li>Managed Chennai HQ, extending coverage to Coimbatore &amp; Madurai across 18 key accounts.</li>
+        </ul>
+      </div>
+
+      <div class="mission active">
+        <div class="node"></div>
+        <div class="mission-head">
+          <span class="mission-id mono">MISSION 06</span>
+          <h3>Senior Area Sales Manager</h3>
+          <span class="mission-status mono">IN ORBIT — CURRENT</span>
+        </div>
+        <div class="mission-org">BD India Pvt. Ltd. — Chennai, India</div>
+        <div class="mission-window mono">FEB 2020 → PRESENT</div>
+        <ul class="mission-log">
+          <li>Monitor State Government and GeM procurement portals for relevant tenders.</li>
+          <li>Prepare and submit technical and commercial tender documents with Marketing, Finance and Legal.</li>
+          <li>Build relationships with HODs, Nodal Officers and Procurement Authorities to secure spec inclusion.</li>
+          <li>Run departmental meetings in Government Medical Colleges on safety-engineered technologies (CDC, INS, INICC compliant).</li>
+          <li>Train postgraduates and nursing staff on product usage and compliance.</li>
+          <li>Coordinate with Store Officers and Warehouse Managers to drive liquidation and PO quantities.</li>
+          <li>Expanded TNMSC business from ₹20 lakhs to ₹1.75 crore, with up to 15% price revision across tenders.</li>
+          <li>Included product specifications in TNMSC Suture Tenders and Pondicherry Government procurement.</li>
+          <li>Facilitated adoption of safety-engineered solutions across multiple specialties at JIPMER.</li>
+          <li>Supported Head Office in updating product listings on the GeM portal.</li>
+          <li>Achieved 100% sales performance consecutively for FY21, FY22, FY23 &amp; FY24.</li>
+          <li>Manage operations across Tamil Nadu and Puducherry.</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="systems">
+    <div class="eyebrow mono">SPACECRAFT SPECIFICATIONS</div>
+    <h2 class="sec-title">Onboard Systems</h2>
+    <p class="sec-sub">The core capabilities powering every mission.</p>
+
+    <div class="systems-grid">
+      <div class="system">
+        <div class="tag mono">ADAPTABILITY</div>
+        <p>Quick learner with fast adaptability to new therapy areas.</p>
+      </div>
+      <div class="system">
+        <div class="tag mono">EXECUTION</div>
+        <p>Strong decision-making and execution capabilities.</p>
+      </div>
+      <div class="system">
+        <div class="tag mono">COMMUNICATION</div>
+        <p>Customer-focused communication and rapport building.</p>
+      </div>
+      <div class="system">
+        <div class="tag mono">DRIVE</div>
+        <p>Highly energetic, motivated and field-driven.</p>
+      </div>
+      <div class="system">
+        <div class="tag mono">RELATIONSHIPS</div>
+        <p>Relationship-building with KOLs, government authorities and hospital stakeholders.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="training">
+    <div class="eyebrow mono">GROUND TRAINING &amp; COMMS</div>
+    <h2 class="sec-title">Training &amp; Channels</h2>
+
+    <div class="training">
+      <div class="cert">
+        <div class="tag mono">FLIGHT SCHOOL</div>
+        <h3>B.Pharmacy</h3>
+        <p>KM College of Pharmacy — Madurai</p>
+      </div>
+      <div class="cert">
+        <div class="tag mono">COMMUNICATION CHANNELS</div>
+        <h3>Languages</h3>
+        <div class="comms">
+          <span><b>English</b> — Fluent</span>
+          <span><b>Tamil</b> — Fluent</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="contact">
+    <div class="eyebrow mono">OPEN A CHANNEL</div>
+    <h2 class="sec-title">Ready For The Next Mission</h2>
+    <p class="sec-sub" style="margin-left:auto;margin-right:auto;">Reach out to discuss tender strategy, key account growth or the next territory to launch into.</p>
+    <div class="contact-links">
+      <a href="mailto:vinothpharmacy@gmail.com">vinothpharmacy@gmail.com</a>
+      <a href="tel:+919943123489">+91 99431 23489</a>
+    </div>
+    <div class="signoff mono">CHENNAI, INDIA 600128 · TRANSMISSION ENDS</div>
+  </footer>
+
+</div>
+
+<script>
+  // starfield generation
+  const starsEl = document.getElementById('stars');
+  const starCount = window.innerWidth < 700 ? 70 : 140;
+  for(let i=0;i<starCount;i++){
+    const s = document.createElement('span');
+    s.style.left = Math.random()*100 + '%';
+    s.style.top = Math.random()*100 + '%';
+    s.style.animationDelay = (Math.random()*4) + 's';
+    s.style.width = s.style.height = (Math.random()<0.15 ? '3px':'1.5px');
+    starsEl.appendChild(s);
+  }
+</script>
+
+</body>
+</html>
